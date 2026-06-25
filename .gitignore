@@ -1,0 +1,18 @@
+# Binaires
+/bin/
+/dist/
+murmur
+*.exe
+
+# Go
+*.test
+*.out
+coverage.txt
+coverage.html
+
+# OS
+.DS_Store
+
+# Éditeurs
+.idea/
+.vscode/
