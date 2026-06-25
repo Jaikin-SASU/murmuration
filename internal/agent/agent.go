@@ -26,6 +26,10 @@ type Agent struct {
 	// heartbeat (typiquement via le backend local).
 	LoadedModels func(ctx context.Context) []string
 
+	// GPUProbe, si fourni, redétecte les GPU à chaque heartbeat (VRAM libre à
+	// jour). Voir DetectGPUs. Si nil, les GPU de Base.Caps sont conservés.
+	GPUProbe func(ctx context.Context) []capability.GPUInfo
+
 	client *http.Client
 	now    func() time.Time
 }
@@ -53,6 +57,11 @@ func (a *Agent) snapshot(ctx context.Context) capability.Node {
 	}
 	if a.LoadedModels != nil {
 		n.Caps.LoadedModels = a.LoadedModels(ctx)
+	}
+	if a.GPUProbe != nil {
+		if gpus := a.GPUProbe(ctx); gpus != nil {
+			n.Caps.GPUs = gpus
+		}
 	}
 	n.LastHeartbeat = a.now()
 	return n

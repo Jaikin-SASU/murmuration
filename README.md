@@ -98,8 +98,11 @@ make dist       # binaires Windows / macOS / Linux
 
 ## Statut
 
-v0.1 — fondation : registry, scheduler présence-aware, gateway OpenAI, backend Ollama,
-agent cross-plateforme. Voir la [feuille de route](docs/decisions/README.md) et les issues.
+**v0.2** — fondation + **détection GPU automatique** (NVIDIA / Apple Silicon).
+v0.1 livrait le control plane, le scheduler présence-aware, la gateway OpenAI, le
+backend Ollama et l'agent cross-plateforme. Détail dans le [CHANGELOG](CHANGELOG.md).
+Prochaines étapes (v0.3) : connecteur Active Directory, mode nuit pipeline. Voir la
+[feuille de route](docs/decisions/README.md) et les [issues](https://github.com/Jaikin-SASU/murmuration/issues).
 
 ## Contribuer
 

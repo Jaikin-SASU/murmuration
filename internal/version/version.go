@@ -2,4 +2,4 @@
 package version
 
 // Version est injectée au build via -ldflags "-X .../version.Version=vX.Y.Z".
-var Version = "v0.1.0-dev"
+var Version = "v0.2.0-dev"
