@@ -83,8 +83,85 @@ func TestDefaultBackendFactory(t *testing.T) {
 	if _, err := DefaultBackendFactory(n, "ollama"); err != nil {
 		t.Fatalf("factory devrait réussir: %v", err)
 	}
+	if _, err := DefaultBackendFactory(n, "bitnet-cpp"); err == nil {
+		t.Fatal("factory par défaut ne doit pas annoncer un backend non implémenté")
+	}
 	if _, err := DefaultBackendFactory(capability.Node{}, "ollama"); err == nil {
 		t.Fatal("factory devrait échouer sans endpoint")
+	}
+}
+
+func TestRouteCanUseInjectedNonOllamaBackend(t *testing.T) {
+	called := ""
+	s := New(Options{
+		Registry:  registry.New(10 * time.Second),
+		Scheduler: scheduler.New(scheduler.DefaultPolicy()),
+		Factory: func(_ capability.Node, backendName string) (backend.Backend, error) {
+			called = backendName
+			if backendName != "bitnet-cpp" {
+				return nil, errUnsupportedBackend
+			}
+			return backend.NewFake([]string{"bitnet-b1.58"}, "ok"), nil
+		},
+	})
+
+	s.reg.Upsert(capability.Node{
+		ID:       "cpu1",
+		Presence: capability.PresenceFree,
+		Caps: capability.Capabilities{
+			Backends:     []string{"bitnet-cpp"},
+			LoadedModels: []string{"bitnet-b1.58"},
+			Endpoints:    map[string]string{"bitnet-cpp": "http://127.0.0.1:8081"},
+		},
+	})
+
+	if _, nodeID, err := s.Route(context.Background(), "bitnet-b1.58"); err != nil {
+		t.Fatalf("route devrait réussir via bitnet-cpp: %v", err)
+	} else if nodeID != "cpu1" {
+		t.Fatalf("node inattendu: %q", nodeID)
+	}
+	if called != "bitnet-cpp" {
+		t.Fatalf("backend appelé = %q, attendu bitnet-cpp", called)
+	}
+}
+
+func TestRoutePrefersLoadedModelAcrossBackends(t *testing.T) {
+	called := ""
+	s := New(Options{
+		Registry:  registry.New(10 * time.Second),
+		Scheduler: scheduler.New(scheduler.DefaultPolicy()),
+		Factory: func(_ capability.Node, backendName string) (backend.Backend, error) {
+			called = backendName
+			return backend.NewFake([]string{"bitnet-b1.58"}, "ok"), nil
+		},
+	})
+
+	s.reg.Upsert(capability.Node{
+		ID:       "ollama-cold",
+		Presence: capability.PresenceFree,
+		Caps: capability.Capabilities{
+			GPUs:      []capability.GPUInfo{{Vendor: capability.VendorNVIDIA, VRAMTotalMB: 24000, VRAMFreeMB: 24000}},
+			Backends:  []string{"ollama"},
+			Endpoints: map[string]string{"ollama": "http://127.0.0.1:11434"},
+		},
+	})
+	s.reg.Upsert(capability.Node{
+		ID:       "bitnet-warm",
+		Presence: capability.PresenceFree,
+		Caps: capability.Capabilities{
+			Backends:     []string{"bitnet-cpp"},
+			LoadedModels: []string{"bitnet-b1.58"},
+			Endpoints:    map[string]string{"bitnet-cpp": "http://127.0.0.1:8081"},
+		},
+	})
+
+	if _, nodeID, err := s.Route(context.Background(), "bitnet-b1.58"); err != nil {
+		t.Fatalf("route devrait réussir via modèle déjà chargé: %v", err)
+	} else if nodeID != "bitnet-warm" {
+		t.Fatalf("node inattendu: %q", nodeID)
+	}
+	if called != "bitnet-cpp" {
+		t.Fatalf("backend appelé = %q, attendu bitnet-cpp", called)
 	}
 }
 

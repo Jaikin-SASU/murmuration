@@ -20,6 +20,9 @@ Moteur **mixte selon le besoin**, derrière une abstraction `Backend`
 - **llama.cpp RPC** (`llama-server` + `rpc-server`) pour le **pipeline 2-4 nœuds**
   en mode nuit : seul moteur flexible mélangeant CUDA + Metal + Windows + Vulkan
   dans un même groupe. Batch uniquement.
+- **bitnet.cpp** est réservé comme backend futur pour modèles BitNet/1.58-bit
+  CPU-native ; il ne remplace pas Ollama en v1, mais complète le Tier 2 CPU
+  quand des modèles utiles sont disponibles (voir [ADR-0009](0009-cpu-native-1bit-bitnet-backend.md)).
 
 ## Conséquences
 

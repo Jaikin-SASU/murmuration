@@ -50,7 +50,8 @@ dans [DESIGN](../../DESIGN.md#architecture).
 ### Tiers de routage
 - Tier 0 — serveur JAIKIN : gros modèles, always-on.
 - Tier 1 — répliques GPU Kappeler : gros GPU d'abord.
-- Tier 2 — pool CPU/Apple : overflow, embeddings, batch.
+- Tier 2 — pool CPU/Apple : overflow, embeddings, batch ; candidat `bitnet-cpp`
+  pour modèles 1.58-bit CPU-native.
 - Tier nuit — pipeline RPC 2-4 nœuds : modèle un cran plus gros, batch.
 
 ## 5. Composants & interfaces
@@ -67,8 +68,10 @@ dans [DESIGN](../../DESIGN.md#architecture).
 | `deploy` | Packaging GPO/MSI + pkg/launchd | artefacts CI |
 
 **Interface `Backend`** (pluggable, cœur du 10x sans réécriture) :
-`OllamaBackend`, `LlamaRpcBackend` en v1 ; `VllmBackend`/`MlxBackend`/futurs s'y
-branchent sans toucher au scheduler ([ADR-0006](../../decisions/0006-future-proof-pluggable-backends.md)).
+`OllamaBackend`, `LlamaRpcBackend` en v1 ; `BitnetCppBackend`,
+`VllmBackend`/`MlxBackend`/futurs s'y branchent sans toucher au scheduler
+([ADR-0006](../../decisions/0006-future-proof-pluggable-backends.md),
+[ADR-0009](../../decisions/0009-cpu-native-1bit-bitnet-backend.md)).
 
 ## 6. Scheduling & présence
 
@@ -98,11 +101,14 @@ Interfaces `FleetSource` / `IdentityProvider` pour rester utilisable hors-AD (OS
 - **E2E** : node réel (Ollama en conteneur) + requête `/v1/chat` bout-en-bout ;
   scénario « utilisateur revient → node retiré du pool ».
 
-## 10. Les deux leviers de 10x
+## 10. Les trois leviers de 10x
 
 1. **Pari densité** (dès v1) — le pool récolte gratuitement les modèles qui
    rétrécissent ([ADR-0006](../../decisions/0006-future-proof-pluggable-backends.md)).
-2. **Sharding optimisé par IA** (recherche) — un modèle (Fable/Mythos) planifie la
+2. **CPU-native 1.58-bit** (proposé) — BitNet/bitnet.cpp peut rendre les postes
+   CPU-only utiles pour des modèles et batchs adaptés
+   ([ADR-0009](../../decisions/0009-cpu-native-1bit-bitnet-backend.md)).
+3. **Sharding optimisé par IA** (recherche) — un modèle (Fable/Mythos) planifie la
    découpe + spécule pour 10x les tok/s du mode nuit
    ([ADR-0007](../../decisions/0007-ai-optimized-sharding-research-track.md)).
 

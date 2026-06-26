@@ -3,6 +3,15 @@
 Toutes les versions notables de Murmuration. Format inspiré de
 [Keep a Changelog](https://keepachangelog.com/fr/), versionnage [SemVer](https://semver.org/lang/fr/).
 
+## [Unreleased]
+
+### Ajouté
+- ADR-0009 : piste backend CPU-native `bitnet-cpp` pour modèles BitNet/1.58-bit.
+
+### Modifié
+- Le routage serveur peut essayer plusieurs backends annoncés par les nodes via
+  une factory injectée ; la factory par défaut reste limitée à Ollama.
+
 ## [v0.2.0] — 2026-06-25
 
 ### Ajouté

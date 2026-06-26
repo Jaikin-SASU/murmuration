@@ -5,7 +5,7 @@
 > performants arriveront, on relit ce journal et on sait *exactement* quelles
 > hypothèses réévaluer pour faire un 10x.
 
-Dernière mise à jour : 2026-06-25
+Dernière mise à jour : 2026-06-26
 
 ---
 
@@ -97,6 +97,19 @@ llama.cpp RPC (pipeline nuit, seul flexible multi-vendeurs).
 
 ---
 
+## P6 — CPU-only ne veut pas dire gros modèle dense classique
+
+**Problème.** Les postes CPU-only restent trop lents pour servir confortablement
+des modèles denses classiques en chat interactif. Les gains annoncés par
+BitNet/bitnet.cpp concernent des modèles 1.58-bit avec kernels spécialisés, pas
+une conversion gratuite de n'importe quel modèle existant.
+
+**Conséquence.** On garde les CPU-only dans le Tier 2, orientés overflow, batch,
+embeddings/classification et modèles 1.58-bit explicitement compatibles.
+→ voir [ADR-0009](decisions/0009-cpu-native-1bit-bitnet-backend.md).
+
+---
+
 ## Hypothèses à réévaluer quand le matériel/les modèles progressent
 
 | Hypothèse | Si elle change… | Impact |
@@ -104,3 +117,4 @@ llama.cpp RPC (pipeline nuit, seul flexible multi-vendeurs).
 | LAN ≤ 1 GbE | Passage 10/25 GbE ou Thunderbolt mesh | Tensor parallel redevient envisageable (P3) |
 | Postes faibles | GPU dédiés généralisés | Plus de répliques de gros modèles en local |
 | Capacité/Go des modèles | Modèles 14B = qualité 200B d'aujourd'hui | **Le 10x principal** : le pool fait tourner du « gros » sans rien changer |
+| Modèles 1.58-bit CPU-native | Qualité suffisante sur 7B-100B BitNet | Les postes CPU-only deviennent utiles sans GPU pour batch/overflow |

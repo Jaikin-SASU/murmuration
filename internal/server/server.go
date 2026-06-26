@@ -6,6 +6,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"sort"
 
@@ -20,9 +21,14 @@ import (
 // pour les tests.
 type BackendFactory func(n capability.Node, backendName string) (backend.Backend, error)
 
-// DefaultBackendFactory construit un backend Ollama à partir de l'endpoint
-// publié par le node.
+var errUnsupportedBackend = cfgError{"backend non supporté par cette factory"}
+
+// DefaultBackendFactory construit le backend implémenté localement à partir de
+// l'endpoint publié par le node.
 func DefaultBackendFactory(n capability.Node, backendName string) (backend.Backend, error) {
+	if backendName != "ollama" {
+		return nil, errUnsupportedBackend
+	}
 	url := n.Caps.Endpoints[backendName]
 	if url == "" {
 		return nil, errNoEndpoint
@@ -80,15 +86,36 @@ func New(opts Options) *Server {
 // Route implémente gateway.Router : choisit un node via le scheduler et
 // construit son backend.
 func (s *Server) Route(ctx context.Context, model string) (backend.Backend, string, error) {
-	d, err := s.sched.Pick(s.reg.List(), scheduler.Request{Model: model})
-	if err != nil {
-		return nil, "", err
+	nodes := s.reg.List()
+	if be, nodeID, ok, err := s.routeWithBackendPreference(nodes, model, false); ok || err != nil {
+		return be, nodeID, err
 	}
-	be, err := s.factory(d.Node, "ollama")
-	if err != nil {
-		return nil, "", err
+	if be, nodeID, ok, err := s.routeWithBackendPreference(nodes, model, true); ok || err != nil {
+		return be, nodeID, err
 	}
-	return be, d.Node.ID, nil
+	return nil, "", scheduler.ErrNoCapacity
+}
+
+var backendPreference = []string{"ollama", "bitnet-cpp", "llama-rpc"}
+
+func (s *Server) routeWithBackendPreference(nodes []capability.Node, model string, allowNeedsLoad bool) (backend.Backend, string, bool, error) {
+	for _, backendName := range backendPreference {
+		d, err := s.sched.Pick(nodes, scheduler.Request{Model: model, Backend: backendName})
+		if err != nil {
+			continue
+		}
+		if d.NeedsLoad && !allowNeedsLoad {
+			continue
+		}
+		be, err := s.factory(d.Node, backendName)
+		if err == nil {
+			return be, d.Node.ID, true, nil
+		}
+		if !errors.Is(err, errUnsupportedBackend) && !errors.Is(err, errNoEndpoint) {
+			return nil, "", false, err
+		}
+	}
+	return nil, "", false, nil
 }
 
 // Models implémente gateway.Router : union des modèles chargés sur le parc.

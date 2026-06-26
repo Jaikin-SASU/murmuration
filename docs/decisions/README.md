@@ -15,6 +15,8 @@
 | [0005](0005-presence-aware-scheduling.md) | Scheduling conscient de la présence | Accepté |
 | [0006](0006-future-proof-pluggable-backends.md) | Architecture pluggable + pari sur la densité des modèles | Proposé |
 | [0007](0007-ai-optimized-sharding-research-track.md) | Sharding optimisé par l'IA (Fable/Mythos) | Proposé (recherche) |
+| [0008](0008-http-json-transport-v1.md) | Transport HTTP/JSON pour la v1 (gRPC différé) | Accepté |
+| [0009](0009-cpu-native-1bit-bitnet-backend.md) | Backend CPU-native 1.58-bit (BitNet/bitnet.cpp) | Proposé |
 
 ## Modèle d'ADR
 

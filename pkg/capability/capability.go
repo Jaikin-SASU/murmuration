@@ -52,7 +52,7 @@ type Capabilities struct {
 	CPUCores     int               `json:"cpu_cores"`
 	RAMTotalMB   int64             `json:"ram_total_mb"`
 	RAMFreeMB    int64             `json:"ram_free_mb"`
-	Backends     []string          `json:"backends"`      // ex. ["ollama","llama-rpc"]
+	Backends     []string          `json:"backends"`      // ex. ["ollama","bitnet-cpp","llama-rpc"]
 	LoadedModels []string          `json:"loaded_models"` // modèles déjà en mémoire
 	Endpoints    map[string]string `json:"endpoints"`     // backend -> base URL joignable
 }

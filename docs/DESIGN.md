@@ -6,7 +6,7 @@
 > Voir aussi : [PROBLEMS-AND-CONSTRAINTS](PROBLEMS-AND-CONSTRAINTS.md) ·
 > [décisions (ADR)](decisions/README.md).
 
-Dernière mise à jour : 2026-06-25
+Dernière mise à jour : 2026-06-26
 
 ## Vision en une phrase
 
@@ -52,7 +52,8 @@ plus denses ([ADR-0006](decisions/0006-future-proof-pluggable-backends.md)).
 
 - **Tier 0** — serveur JAIKIN : gros modèles, latence faible, always-on.
 - **Tier 1** — répliques GPU Kappeler : postes idle/libres, gros GPU d'abord.
-- **Tier 2** — pool CPU/Apple : overflow, embeddings, batch.
+- **Tier 2** — pool CPU/Apple : overflow, embeddings, batch ; candidat
+  `bitnet-cpp` pour modèles 1.58-bit CPU-native.
 - **Tier nuit** — groupe pipeline RPC 2-4 nœuds : modèle un cran plus gros, batch.
 
 ## Composants (unités isolées, testables séparément)
@@ -65,7 +66,7 @@ plus denses ([ADR-0006](decisions/0006-future-proof-pluggable-backends.md)).
 | **batch-queue** | File durable de tâches parallélisables | registry |
 | **ad-connector** | Inventaire, présence, identité (LDAP/Kerberos) | AD Kappeler |
 | **agent** | Superviseur local : présence, télémétrie, pilote Backend | Backend, OS |
-| **backend (iface)** | `OllamaBackend`, `LlamaRpcBackend`, futurs… | moteurs |
+| **backend (iface)** | `OllamaBackend`, `LlamaRpcBackend`, `BitnetCppBackend` futur… | moteurs |
 | **deploy** | Packaging GPO/MSI (Win) + pkg/launchd (Mac) | — |
 
 ## Flux d'une requête (jour, pool de répliques)
@@ -93,12 +94,15 @@ plus denses ([ADR-0006](decisions/0006-future-proof-pluggable-backends.md)).
 - **E2E** : un faux node (Ollama réel en conteneur) + une requête `/v1/chat`
   bout-en-bout ; scénario « utilisateur revient → node retiré ».
 
-## Deux leviers de 10x
+## Trois leviers de 10x
 
 1. **Pari densité** ([ADR-0006](decisions/0006-future-proof-pluggable-backends.md))
    — le pool de répliques récolte gratuitement les modèles qui rétrécissent.
    Disponible dès v1, sans effort de recherche.
-2. **Sharding optimisé par l'IA** ([ADR-0007](decisions/0007-ai-optimized-sharding-research-track.md))
+2. **CPU-native 1.58-bit** ([ADR-0009](decisions/0009-cpu-native-1bit-bitnet-backend.md))
+   — BitNet/bitnet.cpp transforme les CPU-only en capacité exploitable pour des
+   modèles et batchs adaptés, si les modèles 1.58-bit deviennent assez bons.
+3. **Sharding optimisé par l'IA** ([ADR-0007](decisions/0007-ai-optimized-sharding-research-track.md))
    — piste de recherche : un modèle (Fable/Mythos) planifie la découpe, spécule
    et masque la latence pour 10x les tok/s d'un groupe nuit. Branché sur
    l'interface `Backend`, n'impacte pas le cœur v1.

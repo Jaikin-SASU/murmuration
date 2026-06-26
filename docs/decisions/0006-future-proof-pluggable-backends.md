@@ -42,13 +42,14 @@ pluggables**, en 4 couches étanches :
 3. **Scheduler policy-driven, routé par tiers** :
    - *Tier 0* — serveur JAIKIN (gros modèles, latence faible, always-on)
    - *Tier 1* — répliques GPU Kappeler (postes idle/libres, gros GPU d'abord)
-   - *Tier 2* — pool CPU/Apple Kappeler (overflow, embeddings, batch)
+   - *Tier 2* — pool CPU/Apple Kappeler (overflow, embeddings, batch,
+     backends CPU-native type BitNet/bitnet.cpp)
    - *Tier nuit* — groupe pipeline RPC 2-4 nœuds (un cran plus gros, batch)
    La politique est une donnée, pas du code en dur.
 
 4. **Backends pluggables** derrière une interface `Backend` unique :
-   `OllamaBackend` et `LlamaRpcBackend` au départ ; `VllmBackend`, `MlxBackend`,
-   `XBackend` futurs s'y branchent **sans toucher au scheduler**.
+   `OllamaBackend` et `LlamaRpcBackend` au départ ; `BitnetCppBackend`,
+   `VllmBackend`, `MlxBackend`, `XBackend` futurs s'y branchent **sans toucher au scheduler**.
 
 Plus une **file batch durable** : les tâches parallélisables (embeddings, indexing
 RAG, classification, génération par lots) sont drainées opportunistiquement par le
@@ -62,6 +63,9 @@ parc — le cas d'usage où 30 machines faibles brillent vraiment.
   modèles plus denses, davantage de charge bascule automatiquement vers le pool.
 - **Pari densité** → le travail le plus dur (rendre les modèles meilleurs) est
   fait par l'industrie ; notre fondation ne fait que *récolter* le gain.
+- **CPU-native 1.58-bit** ([ADR-0009](0009-cpu-native-1bit-bitnet-backend.md))
+  → si BitNet tient ses promesses sur des modèles utiles, les postes sans GPU
+  rejoignent le pool pour batch/overflow sans changement de contrat public.
 
 ## Conséquences
 

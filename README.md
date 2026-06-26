@@ -29,6 +29,8 @@ chez lui (7B–14B quantifié, plus sur les gros GPU) ; la gateway répartit les
 ✅ **Gros GPU d'abord**, auto-scaling par profondeur de file.
 ✅ **Endpoint OpenAI-compatible** : vos clients existants marchent sans changement.
 ✅ **Hétérogène** : NVIDIA (CUDA), Apple Silicon (Metal), CPU — via Ollama.
+✅ **Prévu pour les modèles CPU-native** : backend `bitnet-cpp` réservé pour les
+modèles 1.58-bit/BitNet quand ils deviennent utiles en production.
 
 ❌ **Pas** d'agrégation mémoire transparente entre machines (physiquement impossible).
 ❌ **Pas** d'inférence interactive d'un très gros modèle éclaté sur le parc : sur LAN
@@ -78,12 +80,15 @@ curl http://serveur:8080/v1/chat/completions \
 
 `GET /v1/models` liste les modèles chargés sur le parc. `stream:true` est supporté (SSE).
 
-## Deux leviers de 10x
+## Trois leviers de 10x
 
 1. **Pari densité** (dès maintenant) — quand un 14B atteindra la qualité d'un 70B
    d'aujourd'hui, le même parc servira « du gros » sans rien changer.
    [ADR-0006](docs/decisions/0006-future-proof-pluggable-backends.md)
-2. **Sharding optimisé par IA** (recherche) — un modèle planifie la découpe et masque
+2. **CPU-native 1.58-bit** (proposé) — BitNet/bitnet.cpp peut rendre les postes
+   CPU-only utiles pour des modèles et batchs adaptés, sans GPU.
+   [ADR-0009](docs/decisions/0009-cpu-native-1bit-bitnet-backend.md)
+3. **Sharding optimisé par IA** (recherche) — un modèle planifie la découpe et masque
    la latence pour 10x les tok/s du mode nuit.
    [ADR-0007](docs/decisions/0007-ai-optimized-sharding-research-track.md)
 

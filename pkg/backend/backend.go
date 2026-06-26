@@ -1,6 +1,6 @@
 // Package backend abstrait le moteur d'inférence d'un node. C'est l'interface
-// qui permet le 10x sans réécriture (ADR-0006) : Ollama et llama.cpp RPC
-// aujourd'hui, vLLM/MLX/futurs demain, sans toucher au scheduler.
+// qui permet le 10x sans réécriture (ADR-0006) : Ollama aujourd'hui,
+// llama.cpp RPC/BitNet/vLLM/MLX demain, sans toucher au scheduler.
 package backend
 
 import (
