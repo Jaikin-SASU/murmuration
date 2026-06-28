@@ -79,6 +79,7 @@ curl http://serveur:8080/v1/chat/completions \
 ```
 
 `GET /v1/models` liste les modèles chargés sur le parc. `stream:true` est supporté (SSE).
+Voir aussi les [exemples Python et JavaScript avec les SDK OpenAI](docs/OPENAI-SDK-CLIENTS.md).
 
 ## Trois leviers de 10x
 
